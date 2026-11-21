@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.seed import SEED_ROWS
+from app.seed import AUXILIARY_TABLES, SEED_ROWS
 
 
 class Store:
@@ -16,7 +16,8 @@ class Store:
         }
 
     def module_names(self) -> list[str]:
-        return sorted(self._tables)
+        # 试算辅助表不登记为业务模块，避免污染运营概览与通用资源路由
+        return sorted(name for name in self._tables if name not in AUXILIARY_TABLES)
 
     def rows(self, module: str) -> list[dict[str, Any]]:
         return self._tables.setdefault(module, [])

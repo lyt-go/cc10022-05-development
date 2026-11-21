@@ -77,5 +77,31 @@ npm run dev
 - 列表接口统一返回 `{ items, total, page, size }`，动作接口统一返回 `{ ok, message }`。
 - 状态流转只允许在 `app/services` 里改，路由层不做业务判断。
 
+## 参考别名清洗试算
+
+字段标准化清洗关联参考数据管理的两套别名解释，提供独立的清洗试算视图
+（前端导航「清洗试算（参考别名）」，路由 `/field_cleanse/trial`）：
+
+- 两套别名解释分开存放：已生效参考数据 `mdm_reference` 是旧解释，运营更正的
+  试算别名存于辅助表 `mdm_reference_alias_override`，试算时叠加为新解释，不回写生效数据。
+- 试算按实际地址记录（辅助表 `address_raw_record`）逐套解析，重洗预览同时呈现
+  **旧码、拟改新码、参考类别、差异类型**，并输出受影响区域汇总与站点旧码→新码映射。
+- 试算全程只读：已生效参考数据与正式清洗旧码在试算期间保持原样，可通过
+  `GET /api/field_cleanse/trial/effective-snapshot` 核对。
+- 未回源地区标记「待回源确认」并计入受影响区域，不能算作没有影响；历史原始地址
+  补录（`POST /api/field_cleanse/trial/address-records`）后重新试算，视图即随之变化。
+- 辅助表不登记为业务模块（见 `seed.AUXILIARY_TABLES`），不污染运营概览与通用资源路由。
+
+试算接口（前缀 `/api/field_cleanse/trial`，先于通用 `/{module}` 路由注册）：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/categories` | 可试算的参考类别 |
+| GET | `/alias-overrides` | 试算别名更正清单（第二套解释） |
+| GET | `/address-records` | 实际地址原始记录（可按区域过滤） |
+| GET | `/preview?category=` | 清洗差异试算视图 |
+| GET | `/effective-snapshot?category=` | 生效参考数据与正式旧码核对 |
+| POST | `/address-records` | 原始地址回源补录 |
+
 领域：数据工程
 子方向：数仓与数据湖
